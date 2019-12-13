@@ -4,10 +4,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
-	"io"
 )
 
 const (
@@ -35,12 +32,16 @@ func UnPadding(cipherText []byte) []byte {
 	return cipherText
 }
 
-// AesCbcEncrypt AEC加密（CBC模式，密码分组链接模式）
+// AesCbcEncrypt AEC加密（CBC模式，密码分组链接模式， Cipher Block Chaining）
+// step1：根据key（长度 16、24、32）值的长度 new 一个 cipher， 相当于开启一个加密，然后返回一个 block
+// step2：把要加密的字符串填充成 key 值的整数倍, 填充的数值为填充的长度值，便于去填充
+// step3：定义 初始化向量 ，创建 blockMode
+// step4: 创建一个跟填充后的明文长度一样的 bytes 接收进行加密后的块信息
 func AesCbcEncrypt(plainText []byte, key []byte) []byte {
 	//指定加密算法，返回一个AES算法的Block接口对象
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		panic(err) 
 	}
 
 	//进行填充
@@ -76,72 +77,17 @@ func AesCbcDecrypt(cipherText []byte, key []byte) []byte {
 	return plainText
 }
 
-// AesGCMEncrypt AES 的 GCM 加密
-func AesGCMEncrypt() {
-	key, _ := hex.DecodeString("6368616e676520746869732070617373776f726420746f206120736563726574")
-	plaintext := []byte("exampleplaintext")
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// Never use more than 2^32 random nonces with a given key because of the risk of a repeat.
-	nonce := make([]byte, 12)
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		panic(err.Error())
-	}
-
-	str := hex.EncodeToString(nonce)
-
-	fmt.Println(string(str))
-
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	ciphertext := aesgcm.Seal(nil, nonce, plaintext, nil)
-	fmt.Printf("%x\n", ciphertext)
-}
-
-// AesGCMDecrypt 解密
-func AesGCMDecrypt() {
-	key, _ := hex.DecodeString("6368616e676520746869732070617373776f726420746f206120736563726574")
-	ciphertext, _ := hex.DecodeString("c3aaa29f002ca75870806e44086700f62ce4d43e902b3888e23ceff797a7a471")
-	nonce, _ := hex.DecodeString("64a9433eae7ccceee2fc0eda")
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	fmt.Printf("%s\n", plaintext)
-}
-
 // 他们一直都是
 func main() {
-	// message := []byte("eeeareyou如果有这个呢ee")
-	// //指定密钥h
-	// key := []byte(PrivKey)
-	// //加密
-	// cipherText := AesCbcEncrypt(message, key)
-	// fmt.Println("加密后为：", string(cipherText))
-	// //解密
-	// plainText := AesCbcDecrypt(cipherText, key)
-	// fmt.Println("解密后为：", string(plainText))
 
-	AesGCMEncrypt()
+	// CBC 模式
+	msg := []byte("这里是我的详细内容")
+	cipherText := AesCbcEncrypt(msg, []byte("1234567891234567"))
+	fmt.Println(string(cipherText))
 
-	// AesGCMDecrypt()
+	plainText := AesCbcDecrypt(cipherText, []byte("1234567891234567"))
+	fmt.Println(string(plainText))
+
+	// CFB （Cipher Feedback）
+
 }

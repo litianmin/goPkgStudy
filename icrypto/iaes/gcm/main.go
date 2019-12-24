@@ -69,5 +69,4 @@ func AesGcmDecrypt() {
 }
 
 func main() {
-
 }
